@@ -37,7 +37,7 @@ public class DatabaseTest {
   void shouldBackSessionIsExpired() {
     Session testSession = new Session(TEST_ID, 0, Session.SECOND);
     getInstance().mergeObject(testSession);
-    assertTrue(DBHandler.getInstance().getObject(TEST_ID, testSession).isSessionExpired(TEST_ID));
+    assertTrue(DBHandler.getInstance().getObject(TEST_ID, testSession).isSessionExpired());
     getInstance().deleteObject(testSession);
   }
 }

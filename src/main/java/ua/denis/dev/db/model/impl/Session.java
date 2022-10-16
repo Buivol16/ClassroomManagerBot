@@ -38,7 +38,7 @@ public class Session {
     else expiredAt = LocalDateTime.now().plusHours(8).format(DateTimeFormatter.ofPattern(BotConsts.TIME_PATTERN));
     return expiredAt;
   }
-  public boolean isSessionExpired(long id) {
+  public boolean isSessionExpired() {
     boolean result = false;
     String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern(BotConsts.TIME_PATTERN));
     if (now.compareTo(getExpiredAt()) >= 0) result = true;

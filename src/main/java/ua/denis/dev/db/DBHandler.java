@@ -46,7 +46,7 @@ public class DBHandler {
   }
 
   public <T> T getObject(long id, T t) {
-    T object = null;
+    T object = t;
     openSession();
     session.beginTransaction();
     object = (T) session.get(t.getClass(), id);

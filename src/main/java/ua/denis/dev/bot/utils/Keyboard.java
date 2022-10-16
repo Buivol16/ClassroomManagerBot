@@ -5,6 +5,11 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.KeyboardButton;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 public class Keyboard {
   public static final InlineKeyboardMarkup typeChooseKeyboard =
       new InlineKeyboardMarkup(
@@ -30,4 +35,7 @@ public class Keyboard {
           .addRow(new KeyboardButton("\uD83D\uDD04Змінити тип аккаунту\uD83D\uDD04"))
           .resizeKeyboard(true)
           .oneTimeKeyboard(true);
+  public static final InlineKeyboardMarkup dateKeyboard =
+      new InlineKeyboardMarkup();
+
 }

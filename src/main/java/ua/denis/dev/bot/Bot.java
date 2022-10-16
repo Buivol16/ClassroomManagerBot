@@ -8,11 +8,10 @@ import ua.denis.dev.db.DBHandler;
 public class Bot {
   private static Bot INSTANCE = null;
   private static TelegramBot bot = null;
+  public Thread thread = new Thread(DBHandler::getInstance);
 
   private Bot() {
-    new Thread(() -> DBHandler.getInstance()).start();
     createBot();
-    bot.setUpdatesListener(new MyOwnListener());
   }
 
   public static Bot getInstance() {
@@ -20,14 +19,18 @@ public class Bot {
     return INSTANCE;
   }
 
-  public TelegramBot getBot() {
+  public static TelegramBot getBot() {
     return bot;
   }
-
-  private void createBot() {
-    bot = new TelegramBot(BotConsts.TOKEN);
+  public void startDBHandler(){
+    if (!thread.isAlive()) thread.start();
   }
+  private void createBot() {
+    startDBHandler();
+    if (bot == null) bot = new TelegramBot(BotConsts.TOKEN);
+    bot.setUpdatesListener(new MyOwnListener());
 
+  }
   public void terminateBot() {
     bot.shutdown();
   }

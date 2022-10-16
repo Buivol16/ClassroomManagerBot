@@ -26,7 +26,7 @@ public class MyOwnListener implements UpdatesListener {
   private Teacher teacher = null;
   private Session session = null;
 
-  private final TelegramBot bot = Bot.getInstance().getBot();
+  private TelegramBot bot = Bot.getBot();
 
   @Override
   public int process(List<Update> list) {
@@ -35,43 +35,34 @@ public class MyOwnListener implements UpdatesListener {
           if (update.message() != null) {
             message = update.message().text();
             chatId = update.message().chat().id();
-            name = update.message().from().username();
+            name = update.message().from().firstName();
             userId = update.message().from().id();
             user = getUser();
-            session = DBHandler.getInstance().getObject(userId, session);
-
+            session = getSession();
             if (user != null) {
-              if (hasSession() && hasType()) {
-                if (getUser().getAccountType().equals("Teacher")) {
-                  if (message.equals("\uD83D\uDD04Змінити тип аккаунту\uD83D\uDD04")) {
-                    chooseType();
-                    return;
-                  }
-
-                  bot.execute(
-                      message("Що Ви пропонуєте зробити?").replyMarkup(actionKeyboardTeacher));
-                } else if (getUser().getAccountType().equals("Student")) {
-                  if (message.equals("\uD83D\uDD04Змінити тип аккаунту\uD83D\uDD04")) {
-                    chooseType();
-                    return;
-                  }
-
-                  if (message.equals("\uD83D\uDCDAДомашнє завдання\uD83D\uDCDA"))
-                    sendMessage("Оберіть домашнє завдання по дням: ");
-                  else if (message.equals("\uD83D\uDD51Розклад дзвінків\uD83D\uDD51"))
-                    sendMessage("Ваш розклад дзвінків: ");
-                }
-                chooseAction();
-              } else if (hasSession() && !hasType()) {
-                chooseType();
-              } else {
+              if (session == null) {
+                mergeSession();
                 hello();
-                chooseType();
+                selectAction();
               }
-            } else {
-              deleteSession();
+              if (user.isStudent()){
+                if (message.equals("\uD83D\uDCDAДомашнє завдання\uD83D\uDCDA")) {
+
+                }if (message.equals("\uD83D\uDD51Розклад дзвінків\uD83D\uDD51")){
+
+                }else sendMessage("Невідома команда. Спробуйте змінити тип акаунту.");
+              }else if (user.isTeacher()){
+                if (message.equals("➕Додати новий клас")) {
+
+                }else if (message.equals("✏Змінити вже існуючий клас")){
+
+                }else sendMessage("Невідома команда. Спробуйте змінити тип акаунту.");
+              }else if (message.equals("\uD83D\uDD04Змінити тип аккаунту\uD83D\uDD04")) chooseType();
+
+            } else if (user == null) {
+              mergeSession();
+              mergeUser();
               chooseType();
-              createSession();
             }
           }
           if (update.callbackQuery() != null) {
@@ -80,11 +71,11 @@ public class MyOwnListener implements UpdatesListener {
             callBackData = update.callbackQuery().data();
             userId = update.callbackQuery().from().id();
             user = getUser();
-            session = DBHandler.getInstance().getObject(userId, session);
+            session = getSession();
             setType();
             if (user != null) {
               if (user.isStudent())
-                bot.execute(message("Що Ви хочете дізнатись: ").replyMarkup(actionKeyboardStudent));
+                bot.execute(message("Які Ваші наступні дії: ").replyMarkup(actionKeyboardStudent));
               else if (user.isTeacher())
                 bot.execute(message("Які Ваші наступні дії: ").replyMarkup(actionKeyboardTeacher));
             }
@@ -111,12 +102,9 @@ public class MyOwnListener implements UpdatesListener {
     }
   }
 
-  private void chooseAction() {
-    if (user.isStudent()) {
-
-    } else if (user.isTeacher()) {
-
-    } else chooseType();
+  private void selectAction(){
+    if (user.isStudent()) bot.execute(message("Що ви хочете дізнатись?").replyMarkup(actionKeyboardStudent));
+    else if (user.isTeacher()) bot.execute(message("Що Ви хочете зробити?: ").replyMarkup(actionKeyboardTeacher));
   }
 
   private void hello() {
@@ -124,24 +112,23 @@ public class MyOwnListener implements UpdatesListener {
     sendMessage("\uD83D\uDC4B");
   }
 
-  private boolean hasSession() {
-    var answer = false;
-    if (session != null) answer = true;
-    return answer;
+  private void chooseDate(){
+    bot.execute(message("\uD83D\uDCC5Оберіть дату\uD83D\uDCC5: ").replyMarkup(dateKeyboard));
   }
 
-  private boolean hasType() {
-    var answer = false;
-    if (user.getAccountType() != null) answer = true;
-    return answer;
-  }
+  private void mergeSession() {
+    try {
+      DBHandler.getInstance().mergeObject(new Session(userId, 8, Session.HOURS));
+    } catch (Exception e) {
 
-  private void createSession() {
-    DBHandler.getInstance().mergeObject(new Session(userId, 8, Session.HOURS));
+    }
   }
 
   private Session getSession() {
-    return DBHandler.getInstance().getObject(userId, session);
+    Session session1 = new Session();
+    session1 = DBHandler.getInstance().getObject(userId, session1);
+    if (session1 != null) return session1;
+    else return null;
   }
 
   private void deleteSession() {
@@ -149,11 +136,14 @@ public class MyOwnListener implements UpdatesListener {
   }
 
   private void mergeUser() {
-    DBHandler.getInstance().mergeObject(new User(userId, callBackData, name));
+    DBHandler.getInstance().mergeObject(user);
   }
 
   private User getUser() {
-    return DBHandler.getInstance().getObject(userId, user);
+    User user = new User();
+    user = DBHandler.getInstance().getObject(userId, user);
+    if (user != null) return user;
+    else return null;
   }
 
   private void sendMessage(String message) {

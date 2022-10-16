@@ -1,6 +1,9 @@
+package ua.denis;
+
 import org.junit.jupiter.api.*;
-import ua.denis.dev.db.model.Session;
-import ua.denis.dev.db.model.User;
+import ua.denis.dev.db.DBHandler;
+import ua.denis.dev.db.model.impl.Session;
+import ua.denis.dev.db.model.impl.User;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static ua.denis.dev.db.DBHandler.getInstance;
@@ -11,37 +14,30 @@ public class DatabaseTest {
   @Test
   void shouldFindTestUser() {
     User user = new User(TEST_ID, null, null);
-    getInstance().createUser(user);
-    assertTrue(getInstance().hasUser(TEST_ID));
-    getInstance().deleteUser(user);
+    getInstance().mergeObject(user);
+    assertTrue(getInstance().getObject(TEST_ID, user) != null);
+    getInstance().deleteObject(user);
   }
 
   @Test
   void shouldNotFindUser() {
-    assertFalse(getInstance().hasUser(1512));
+    User user = new User();
+    assertTrue(getInstance().getObject(1512, user) == null);
   }
 
   @Test
   void shouldCreateSession() {
     Session testSession = new Session(TEST_ID, 0, Session.SECOND);
-    getInstance().createSession(testSession);
-    assertTrue(getInstance().hasSession(TEST_ID));
-    getInstance().deleteSession(TEST_ID);
+    getInstance().mergeObject(testSession);
+    assertTrue(getInstance().getObject(TEST_ID, testSession) != null);
+    getInstance().deleteObject(testSession);
   }
 
   @Test
-  void shouldCompareSession() {
+  void shouldBackSessionIsExpired() {
     Session testSession = new Session(TEST_ID, 0, Session.SECOND);
-    getInstance().createSession(testSession);
-    assertTrue(getInstance().isSessionExpired(TEST_ID));
-    getInstance().deleteSession(TEST_ID);
-  }
-
-  @Test
-  void shouldMergeUser(){
-    getInstance().createUser(new User(TEST_ID, null, null));
-    getInstance().mergeUser(new User(TEST_ID, "Student", "Denis"));
-    assertTrue("Student".equals(getInstance().getUser(TEST_ID).getAccountType()));
-    getInstance().deleteUser(getInstance().getUser(TEST_ID));
+    getInstance().mergeObject(testSession);
+    assertTrue(DBHandler.getInstance().getObject(TEST_ID, testSession).isSessionExpired(TEST_ID));
+    getInstance().deleteObject(testSession);
   }
 }
